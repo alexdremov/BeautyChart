@@ -1,0 +1,6 @@
+use_frameworks!
+target 'BeautyChart_Tests' do
+  pod 'BeautyChart', :path => '../'
+  
+  
+end
