@@ -5,6 +5,11 @@
 [![License](https://img.shields.io/cocoapods/l/BeautyChart.svg?style=flat)](https://cocoapods.org/pods/BeautyChart)
 [![Platform](https://img.shields.io/cocoapods/p/BeautyChart.svg?style=flat)](https://cocoapods.org/pods/BeautyChart)
 
+<section style="text-align:center">
+    <img src="https://i.ibb.co/ZcPLb7F/RPReplay-Final1598345909.gif" width="400px" style="margin: auto">
+</section>
+
+
 Why making charts if they are not beautiful?
 ***Design and ideas partly copied from [AppPear/ChartView](https://github.com/AppPear/ChartView)***
 
