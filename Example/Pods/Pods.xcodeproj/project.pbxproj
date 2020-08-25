@@ -19,6 +19,11 @@
 		A01CB90924E811D30017B0EF /* IndicatorPoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = A01CB90824E811D30017B0EF /* IndicatorPoint.swift */; };
 		A04649FD24E830B600EA0CB0 /* LineViewStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = A04649FC24E830B600EA0CB0 /* LineViewStyle.swift */; };
 		A04649FF24E836E200EA0CB0 /* ViewIF.swift in Sources */ = {isa = PBXBuildFile; fileRef = A04649FE24E836E200EA0CB0 /* ViewIF.swift */; };
+		A0464A0124E877D000EA0CB0 /* QuickChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0464A0024E877D000EA0CB0 /* QuickChartView.swift */; };
+		A0464A0524E9431100EA0CB0 /* DragView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0464A0424E9431100EA0CB0 /* DragView.swift */; };
+		A065E64F24E9E00B00BA8EA0 /* ChangeBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A065E64E24E9E00B00BA8EA0 /* ChangeBarView.swift */; };
+		A065E65124E9E04700BA8EA0 /* ChangeBarStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = A065E65024E9E04700BA8EA0 /* ChangeBarStyle.swift */; };
+		A0B3B41E24F4FCD9006F30B1 /* MagnifyOnPress.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0B3B41D24F4FCD9006F30B1 /* MagnifyOnPress.swift */; };
 		BC142F39608943F51C73E963C39F5469 /* BeautyChart-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = A39495625B5CD8683B2A91BA22863ED4 /* BeautyChart-dummy.m */; };
 		D13ECA72F520DF4CFE27592199CA8F09 /* Pods-BeautyExample-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = A3F96AE04FE0BCE690E2102BD03AAC42 /* Pods-BeautyExample-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E2C8D6E09744AFD590FED3EA84DDF02A /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3212113385A8FBBDB272BD23C409FF61 /* Foundation.framework */; };
@@ -59,6 +64,11 @@
 		A01CB90824E811D30017B0EF /* IndicatorPoint.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IndicatorPoint.swift; sourceTree = "<group>"; };
 		A04649FC24E830B600EA0CB0 /* LineViewStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineViewStyle.swift; sourceTree = "<group>"; };
 		A04649FE24E836E200EA0CB0 /* ViewIF.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewIF.swift; sourceTree = "<group>"; };
+		A0464A0024E877D000EA0CB0 /* QuickChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickChartView.swift; sourceTree = "<group>"; };
+		A0464A0424E9431100EA0CB0 /* DragView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DragView.swift; sourceTree = "<group>"; };
+		A065E64E24E9E00B00BA8EA0 /* ChangeBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChangeBarView.swift; sourceTree = "<group>"; };
+		A065E65024E9E04700BA8EA0 /* ChangeBarStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChangeBarStyle.swift; sourceTree = "<group>"; };
+		A0B3B41D24F4FCD9006F30B1 /* MagnifyOnPress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MagnifyOnPress.swift; sourceTree = "<group>"; };
 		A39495625B5CD8683B2A91BA22863ED4 /* BeautyChart-dummy.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = "BeautyChart-dummy.m"; sourceTree = "<group>"; };
 		A3F96AE04FE0BCE690E2102BD03AAC42 /* Pods-BeautyExample-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "Pods-BeautyExample-umbrella.h"; sourceTree = "<group>"; };
 		CAE80CAD59F6DDEBB303514CEE559D56 /* Pods-BeautyExample-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Pods-BeautyExample-Info.plist"; sourceTree = "<group>"; };
@@ -156,12 +166,14 @@
 		A01CB90124E7FD3D0017B0EF /* Tools */ = {
 			isa = PBXGroup;
 			children = (
+				A0464A0424E9431100EA0CB0 /* DragView.swift */,
 				A01CB90324E8021F0017B0EF /* Path+QuadCurve.swift */,
 				A01CB8FD24E7FAD50017B0EF /* Helpers.swift */,
 				879F303B779FF3C93E994E2C63261180 /* CGPointsSet.swift */,
 				A01CB8FB24E7F6F50017B0EF /* GraphingTools.swift */,
 				8C232AE4FCF6213AA53BD10A3E60DED8 /* CubicBezier.swift */,
 				A04649FE24E836E200EA0CB0 /* ViewIF.swift */,
+				A0B3B41D24F4FCD9006F30B1 /* MagnifyOnPress.swift */,
 			);
 			name = Tools;
 			path = BeautyChart/Classes/Tools;
@@ -170,7 +182,9 @@
 		A01CB90224E7FD570017B0EF /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				A065E64D24E9DFE300BA8EA0 /* ChangeBar */,
 				A01CB90524E804530017B0EF /* LineView */,
+				A2346708D41C77F0D7C130A0 /* QuickChartView */,
 			);
 			name = Views;
 			path = BeautyChart/Classes/Views;
@@ -185,6 +199,23 @@
 				A04649FC24E830B600EA0CB0 /* LineViewStyle.swift */,
 			);
 			path = LineView;
+			sourceTree = "<group>";
+		};
+		A065E64D24E9DFE300BA8EA0 /* ChangeBar */ = {
+			isa = PBXGroup;
+			children = (
+				A065E64E24E9E00B00BA8EA0 /* ChangeBarView.swift */,
+				A065E65024E9E04700BA8EA0 /* ChangeBarStyle.swift */,
+			);
+			path = ChangeBar;
+			sourceTree = "<group>";
+		};
+		A2346708D41C77F0D7C130A0 /* QuickChartView */ = {
+			isa = PBXGroup;
+			children = (
+				A0464A0024E877D000EA0CB0 /* QuickChartView.swift */,
+			);
+			path = QuickChartView;
 			sourceTree = "<group>";
 		};
 		B1F8B7D5C1E74C745C90476E72A7F26C /* Targets Support Files */ = {
@@ -348,15 +379,20 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A065E64F24E9E00B00BA8EA0 /* ChangeBarView.swift in Sources */,
 				A01CB8FC24E7F6F50017B0EF /* GraphingTools.swift in Sources */,
 				A01CB90024E7FD270017B0EF /* ChartSmoothView.swift in Sources */,
 				A01CB90924E811D30017B0EF /* IndicatorPoint.swift in Sources */,
+				A0B3B41E24F4FCD9006F30B1 /* MagnifyOnPress.swift in Sources */,
 				A01CB8FE24E7FAD50017B0EF /* Helpers.swift in Sources */,
 				A04649FF24E836E200EA0CB0 /* ViewIF.swift in Sources */,
+				A065E65124E9E04700BA8EA0 /* ChangeBarStyle.swift in Sources */,
 				BC142F39608943F51C73E963C39F5469 /* BeautyChart-dummy.m in Sources */,
 				A01CB90424E8021F0017B0EF /* Path+QuadCurve.swift in Sources */,
 				4524CF5537F65434BBEC535A82594D0F /* CGPointsSet.swift in Sources */,
 				A01CB90724E804690017B0EF /* PressLineView.swift in Sources */,
+				A0464A0124E877D000EA0CB0 /* QuickChartView.swift in Sources */,
+				A0464A0524E9431100EA0CB0 /* DragView.swift in Sources */,
 				A04649FD24E830B600EA0CB0 /* LineViewStyle.swift in Sources */,
 				8A03A1901E7AB5E0A985FB0AFE7329DD /* CubicBezier.swift in Sources */,
 			);
