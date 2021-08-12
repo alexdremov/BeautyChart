@@ -1,0 +1,16 @@
+PODS:
+  - BeautyChart (0.1.0)
+
+DEPENDENCIES:
+  - BeautyChart (from `../`)
+
+EXTERNAL SOURCES:
+  BeautyChart:
+    :path: "../"
+
+SPEC CHECKSUMS:
+  BeautyChart: dd197eb8326e4a8dc40b407d80d435adf0a8a347
+
+PODFILE CHECKSUM: 8380f0956fbce92569684541c5d477f454e89661
+
+COCOAPODS: 1.9.3
