@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'BeautyChart'
-  s.version          = '0.2.0'
+  s.version          = '0.2.1'
   s.summary          = 'SwiftUI chart library'
   
   s.swift_version   = '5.0'
