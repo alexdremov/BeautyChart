@@ -8,16 +8,16 @@
 import SwiftUI
 
 struct PressLineView: View {
-    var pressPosition:Binding<CGPoint>
-    var indicatorPoint:Binding<CGPoint>
-    var text:Binding<String>
-    
-    var style:LineViewStyleAdaptive
-    
+    var pressPosition: Binding<CGPoint>
+    var indicatorPoint: Binding<CGPoint>
+    var text: Binding<String>
+
+    var style: LineViewStyleAdaptive
+
     var body: some View {
-        ZStack{
-            IndicatorPoint(style:style).position(indicatorPoint.wrappedValue)
-            Group{
+        ZStack {
+            IndicatorPoint(style: style).position(indicatorPoint.wrappedValue)
+            Group {
                 GeometryReader { proxy in
                     RoundedRectangle(cornerRadius: 14)
                         .stroke(self.style.movingRectColor, lineWidth: 2)
@@ -27,11 +27,11 @@ struct PressLineView: View {
                         .position(x: self.pressPosition.wrappedValue.x, y: proxy.size.height / 2)
                 }
             }
-            
+
             Text(text.wrappedValue)
                 .fontWeight(.semibold)
                 .position(x: pressPosition.wrappedValue.x, y: 20)
         }.drawingGroup()
-        
+
     }
 }

@@ -9,10 +9,10 @@
 import SwiftUI
 
 struct IndicatorPoint: View {
-    var style:LineViewStyleAdaptive
-    
+    var style: LineViewStyleAdaptive
+
     var body: some View {
-        ZStack{
+        ZStack {
             Circle()
                 .fill(style.movingPointColor)
             Circle()

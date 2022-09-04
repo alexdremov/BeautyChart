@@ -8,11 +8,10 @@
 import Foundation
 import SwiftUI
 
+struct MagnifyOnPress: ViewModifier {
 
-struct MagnifyOnPress:ViewModifier{
-    
     @State private var isDetectingLongPress = false
-    
+
     func body(content: Content) -> some View {
         content
             .animation(nil)
@@ -21,8 +20,8 @@ struct MagnifyOnPress:ViewModifier{
             .onLongPressGesture(minimumDuration: 5.0, pressing: { (isPressing) in
                 self.isDetectingLongPress = isPressing
             }, perform: {
-                
+
             })
     }
-    
+
 }
