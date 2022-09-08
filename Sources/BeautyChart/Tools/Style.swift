@@ -165,7 +165,14 @@ public class ChartStyle {
     public var dropShadowColor: Color
     public weak var darkModeStyle: ChartStyle?
 
-    public init(backgroundColor: Color, accentColor: Color, secondGradientColor: Color, textColor: Color, legendTextColor: Color, dropShadowColor: Color) {
+    public init(
+        backgroundColor: Color,
+        accentColor: Color,
+        secondGradientColor: Color,
+        textColor: Color,
+        legendTextColor: Color,
+        dropShadowColor: Color
+    ) {
         self.backgroundColor = backgroundColor
         self.accentColor = accentColor
         self.gradientColor = GradientColor(start: accentColor, end: secondGradientColor)
@@ -174,7 +181,14 @@ public class ChartStyle {
         self.dropShadowColor = dropShadowColor
     }
 
-    public init(backgroundColor: Color, accentColor: Color, gradientColor: GradientColor, textColor: Color, legendTextColor: Color, dropShadowColor: Color) {
+    public init(
+        backgroundColor: Color,
+        accentColor: Color,
+        gradientColor: GradientColor,
+        textColor: Color,
+        legendTextColor: Color,
+        dropShadowColor: Color
+    ) {
         self.backgroundColor = backgroundColor
         self.accentColor = accentColor
         self.gradientColor = gradientColor
@@ -289,4 +303,29 @@ class HapticFeedback {
         generator.notificationOccurred(.success)
     }
     #endif
+}
+
+public struct LineViewStyle {
+    public var firstGradientColor: Color = Colors.OrangeStart
+    public var secondGradientColor: Color = Colors.OrangeEnd
+    
+    public var pointColor: Color = Colors.OrangeStart
+    
+    public var movingPointColor: Color = Colors.DarkPurple
+    public var movingRectColor: Color = Colors.GradientPurple
+    
+    public init() {}
+    
+    public static var standard: LineViewStyle {
+        LineViewStyle()
+    }
+    
+    public static var standardSecond: LineViewStyle {
+        var style = LineViewStyle()
+        style.firstGradientColor = Colors.GradientPurple
+        style.secondGradientColor = Colors.BorderBlue
+        style.pointColor = Colors.DarkPurple
+        style.movingPointColor = Colors.LightGreenAccent
+        return style
+    }
 }

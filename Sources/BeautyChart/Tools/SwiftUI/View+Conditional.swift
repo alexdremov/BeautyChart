@@ -1,10 +1,3 @@
-//
-//  ViewIF.swift
-//  BeautyChart
-//
-//  Created by Александр Дремов on 15.08.2020.
-//
-
 import Foundation
 import SwiftUI
 
