@@ -1,32 +1,47 @@
 import Foundation
 import SwiftUI
 
-extension Array where Element: Plottable {
-    var limits: (x: (min:CGFloat, max:CGFloat), y:(min:CGFloat, max:CGFloat)) {
+struct PointsArray<Element: Plottable> {
+    public typealias Limits = (x: (min:CGFloat, max:CGFloat), y:(min:CGFloat, max:CGFloat))
+    private let storage: [Element]
+    public let limits: Limits
+    public let ranges: (x: CGFloat, y: CGFloat)
+    
+    public var count : Int {
+        storage.count
+    }
+    
+    public var isEmpty : Bool {
+        storage.isEmpty
+    }
+    
+    public init(storage: [Element]) {
+        self.storage = storage
+        self.limits = Self.limitsCalc(from: storage)
+        self.ranges = Self.rangeForLimits(lims: self.limits)
+    }
+    
+    static private func limitsCalc(from storage: [Element]) -> Limits {
         let maxx = CGFloat(
-            self.reduce(-Double.greatestFiniteMagnitude){Swift.max($0, $1.point.x)}
+            storage.reduce(-Double.greatestFiniteMagnitude){Swift.max($0, $1.point.x)}
         )
         let maxy = CGFloat(
-            self.reduce(-Double.greatestFiniteMagnitude){Swift.max($0, $1.point.y)}
+            storage.reduce(-Double.greatestFiniteMagnitude){Swift.max($0, $1.point.y)}
         )
         let minx = CGFloat(
-            self.reduce(Double.greatestFiniteMagnitude){Swift.min($0, $1.point.x)}
+            storage.reduce(Double.greatestFiniteMagnitude){Swift.min($0, $1.point.x)}
         )
         let miny = CGFloat(
-            self.reduce(Double.greatestFiniteMagnitude){Swift.min($0, $1.point.y)}
+            storage.reduce(Double.greatestFiniteMagnitude){Swift.min($0, $1.point.y)}
         )
         return ((minx, maxx), (miny, maxy))
     }
 
-    var ranges: (x: CGFloat, y: CGFloat) {
-        rangeForLimits(lims: self.limits)
+    static private func rangeForLimits(lims: Limits) -> (x: CGFloat, y: CGFloat) {
+        ((lims.x.max-lims.x.min), (lims.y.max-lims.y.min))
     }
 
-    func rangeForLimits(lims: (x: (min: CGFloat, max: CGFloat), y: (min: CGFloat, max: CGFloat))) -> (x: CGFloat, y: CGFloat) {
-        ((lims.0.1-lims.0.0), (lims.1.1-lims.1.0))
-    }
-
-    func affineTransformed(width: Float, height: Float, vMirrored: Bool = true) -> [CGPoint] {
+    public func affineTransformed(width: Float, height: Float, vMirrored: Bool = true) -> [CGPoint] {
         var res: [CGPoint] = []
         for i in 0..<count {
             let newPoint = affineTransformed(i: i, width: width, height: height)
@@ -35,28 +50,30 @@ extension Array where Element: Plottable {
         return res
     }
 
-    func affineTransformed(i: Int, width: Float, height: Float, vMirrored: Bool = true) -> CGPoint {
+    public func affineTransformed(i: Int, width: Float, height: Float, vMirrored: Bool = true) -> CGPoint {
+        affineTransformed(point: storage[i].point, width: width, height: height, vMirrored: vMirrored)
+    }
+    
+    public func affineTransformed(point: CGPoint, width: Float, height: Float, vMirrored: Bool = true) -> CGPoint {
         guard count > 1 else {
             return CGPoint(x: 0, y: 0)
         }
-        
-        let point = self[i].point
         let limitsCache = limits
-        let rangeCache = rangeForLimits(lims: limitsCache)
+        let rangeCache = ranges
         
         let newX = (point.x - limitsCache.x.min) / rangeCache.x * CGFloat(width)
         var newY = (point.y - limitsCache.y.min) / rangeCache.y * CGFloat(height)
-
+        
         if vMirrored {
             newY = CGFloat(height) - newY
         }
-
+        
         return CGPoint(x: newX, y: newY)
     }
 
-    func reverseAffine(_ point: CGPoint, width: Float, height: Float, vMirrored: Bool = true) -> CGPoint {
+    public func reverseAffine(_ point: CGPoint, width: Float, height: Float, vMirrored: Bool = true) -> CGPoint {
         let limitsCache = limits
-        let rangeCache = rangeForLimits(lims: limitsCache)
+        let rangeCache = ranges
 
         var newX = point.x
         var newY = point.y
@@ -71,26 +88,26 @@ extension Array where Element: Plottable {
         return CGPoint(x: newX, y: newY)
     }
 
-    func closestPoint(_ refPoint: CGPoint, axes: [Axis] = [.horizontal, .vertical]) -> CGPoint {
+    public func closestPoint(_ refPoint: CGPoint, axes: [Axis] = [.horizontal, .vertical]) -> CGPoint {
         guard !isEmpty else {
             return CGPoint(x: 0, y: 0)
         }
-        var point = self[0].point
+        var point = storage[0].point
         for i in 1..<count {
             switch axes {
             case let x where x.count == 0:
                  return refPoint
             case let x where x.count == 2:
-                if refPoint.dist(to: point) > refPoint.dist(to: self[i].point) {
-                    point = self[i].point
+                if refPoint.dist(to: point) > refPoint.dist(to: storage[i].point) {
+                    point = storage[i].point
                 }
             case let x where x[0] == .horizontal:
-                if abs(refPoint.x - point.x) > abs(refPoint.x - self[i].point.x) {
-                    point = self[i].point
+                if abs(refPoint.x - point.x) > abs(refPoint.x - storage[i].point.x) {
+                    point = storage[i].point
                 }
             case let x where x[0] == .vertical:
-                if abs(refPoint.x - point.x) > abs(refPoint.x - self[i].point.x) {
-                    point = self[i].point
+                if abs(refPoint.x - point.x) > abs(refPoint.x - storage[i].point.x) {
+                    point = storage[i].point
                 }
             default:
                 return refPoint
