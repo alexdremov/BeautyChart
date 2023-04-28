@@ -55,7 +55,7 @@ struct PointsArray<Element: Plottable> {
     }
     
     public func affineTransformed(point: CGPoint, width: Float, height: Float, vMirrored: Bool = true) -> CGPoint {
-        guard count > 1 else {
+        guard count > 1, width > 0, height > 0 else {
             return CGPoint(x: 0, y: 0)
         }
         let limitsCache = limits

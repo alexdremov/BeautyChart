@@ -8,29 +8,37 @@
 import SwiftUI
 
 struct PressWindow: View {
-    var pressPosition: Binding<CGPoint>
-    var indicatorPoint: Binding<CGPoint>
-    var text: Binding<String>
+    @Binding
+    var pressPosition: CGPoint
+    @Binding
+    var indicatorPoint: CGPoint
+    @Binding
+    var text: String
     
     var style: LineViewStyle
     
     var body: some View {
-        ZStack {
-            IndicatorPoint(style: style)
-                .position(indicatorPoint.wrappedValue)
-            Group {
-                GeometryReader { proxy in
+        ZStack(alignment: .topLeading) {
+            GeometryReader { proxy in
+                Color.clear
+                IndicatorPoint(style: style)
+                    .position(indicatorPoint)
+                VStack {
+                    Text(text)
+                        .fontWeight(.semibold)
+                        .multilineTextAlignment(.center)
+                        .padding()
+                    Spacer()
+                }
+                .frame(idealWidth: .zero, maxHeight: .infinity)
+                .background(
                     RoundedRectangle(cornerRadius: 14)
-                        .stroke(self.style.movingRectColor, lineWidth: 2)
+                        .stroke(style.movingRectColor, lineWidth: 2)
                         .shadow(color: Colors.LegendText, radius: 12, x: 0, y: 6 )
                         .opacity(0.5)
-                        .frame(width: 60, height: proxy.size.height)
-                        .position(x: self.pressPosition.wrappedValue.x, y: proxy.size.height / 2)
-                }
+                )
+                .position(x: pressPosition.x, y:proxy.size.height / 2)
             }
-            Text(text.wrappedValue)
-                .fontWeight(.semibold)
-                .position(x: pressPosition.wrappedValue.x, y: 20)
         }
     }
 }

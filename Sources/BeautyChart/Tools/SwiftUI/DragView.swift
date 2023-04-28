@@ -46,7 +46,11 @@ extension CGPath {
                 let point = element.points[index]
                 points.append(point)
             }
-            let command = PathCommand(type: element.type, point: element.points[numberOfPoints - 1], controlPoints: points)
+            let command = PathCommand(
+                type: element.type,
+                point: element.points[numberOfPoints - 1],
+                controlPoints: points
+            )
             pathCommands.append(command)
         })
         return pathCommands
@@ -83,7 +87,7 @@ class LookUpTable: ObservableObject {
         generateLookupTable()
     }
 
-    func generateLookupTable() {
+    private func generateLookupTable() {
         let commands = cgPath.commands()
         var previousPoint: CGPoint?
         let lookupTableCapacity = Int(capacity)
@@ -100,7 +104,6 @@ class LookUpTable: ObservableObject {
                 continue
             }
             switch command.type {
-
                 case .addLineToPoint:
                     lookupTable.append(contentsOf: divisions.map {
                         lerp(t: Double($0) / Double(numberOfDivisions), p1: startPoint, p2: endPoint)
@@ -117,20 +120,30 @@ class LookUpTable: ObservableObject {
                     })
 
                 case .closeSubpath:
-                    lookupTable.append(contentsOf: divisions.map {
-                        lerp(t: Double($0) / Double(numberOfDivisions), p1: startPoint, p2: lookupTable[0])
-                    })
-
+                    if !lookupTable.isEmpty {
+                        lookupTable.append(contentsOf: divisions.map {
+                            lerp(
+                                t: Double($0) / Double(numberOfDivisions),
+                                p1: startPoint,
+                                p2: lookupTable[0]
+                            )
+                        })
+                    }
                 default:
                     break
             }
             previousPoint = endPoint
         }
+        
     }
 
     /// Calculates a point at given t value, where t in 0.0...1.0
     private func lerp(t: Double, p1: CGPoint, p2: CGPoint) -> CGPoint {
-        let point = mix(simd_double2(x: Double(p1.x), y: Double(p1.y)), simd_double2(x: Double(p2.x), y: Double(p2.y)), t: t)
+        let point = mix(
+            simd_double2(x: Double(p1.x), y: Double(p1.y)),
+            simd_double2(x: Double(p2.x), y: Double(p2.y)),
+            t: t
+        )
         return CGPoint(x: point.x, y: point.y)
     }
 
@@ -141,8 +154,8 @@ class LookUpTable: ObservableObject {
         let b = 2*(1-t)*t*simd_double2(x: Double(p2.x), y: Double(p2.y))
         let c = Double(t*t)*simd_double2(x: Double(p3.x), y: Double(p3.y))
 
-        let final = a + b + c
-        return CGPoint(x: final.x, y: final.y)
+        let point = a + b + c
+        return CGPoint(x: point.x, y: point.y)
     }
 
     /// Calculates a point at given t value, on the cubic bezier segment  where t in 0.0...1.0
@@ -153,21 +166,29 @@ class LookUpTable: ObservableObject {
         let c = (1-t)*t*t*3*simd_double2(x: Double(p3.x), y: Double(p3.y))
         let d = t*t*t*simd_double2(x: Double(p4.x), y: Double(p4.y))
 
-        let final = a + b + d + c
-
-        return CGPoint(x: final.x, y: final.y)
+        let point = a + b + d + c
+        return CGPoint(x: point.x, y: point.y)
     }
 
     /// Finds the closest point on the curve to the drag gestures current offset.
     /// May be faster if I use functions from the vForce library, but simd doesnt seem to have any performance issues
     func getClosestPoint(fromPoint: CGPoint, axes: [Axis] = [.horizontal, .vertical]) -> CGPoint {
-
+        guard !lookupTable.isEmpty else {
+            return .zero
+        }
+        
         let minimum = {
             (0..<lookupTable.count).map {
-                (distance: distance_squared(simd_double2(x: Double(fromPoint.x), y: Double(fromPoint.y)), simd_double2(x: Double(lookupTable[$0].x), y: Double(lookupTable[$0].y))
-                ), index: $0,
-                distanceH: abs(fromPoint.x - lookupTable[$0].x),
-                distanceV: abs(fromPoint.y - lookupTable[$0].y))
+                (
+                    distance:
+                        distance_squared(
+                            simd_double2(x: Double(fromPoint.x), y: Double(fromPoint.y)),
+                            simd_double2(x: Double(lookupTable[$0].x), y: Double(lookupTable[$0].y))
+                        ),
+                    index: $0,
+                    distanceH: abs(fromPoint.x - lookupTable[$0].x),
+                    distanceV: abs(fromPoint.y - lookupTable[$0].y)
+                )
             }.min {
                 if axes.count == 2 {return $0.distance < $1.distance} else if axes.count == 0 {
                     return false
@@ -178,7 +199,6 @@ class LookUpTable: ObservableObject {
                 }
             }
         }()
-
         return lookupTable[minimum!.index]
     }
 }
@@ -249,7 +269,6 @@ struct PathConstrained: View {
     init(_ path: Path) {
         self.lookup = LookUpTable(path: path)
         self.path = path
-        self.lookup.generateLookupTable()
     }
 
     func getDisplacement(closestPoint: CGPoint) -> CGSize {
