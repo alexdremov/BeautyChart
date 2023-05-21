@@ -1,17 +1,17 @@
 import SwiftUI
 import simd
 
-/// Data structure used to store CGPath commands for easier manipulation of individual components
+    /// Data structure used to store CGPath commands for easier manipulation of individual components
 struct PathCommand {
     let type: CGPathElementType
     let point: CGPoint
     let controlPoints: [CGPoint]
 }
 
-// MARK: CGPath Extensions
+    // MARK: CGPath Extensions
 
 extension CGPath {
-    /// Provides access to the information of each individual path command in order.
+        /// Provides access to the information of each individual path command in order.
     func forEach( body: @escaping @convention(block) (CGPathElement) -> Void) {
         typealias Body = @convention(block) (CGPathElement) -> Void
         let callback: @convention(c) (UnsafeMutableRawPointer, UnsafePointer<CGPathElement>) -> Void = { (info, element) in
@@ -21,8 +21,8 @@ extension CGPath {
         let unsafeBody = unsafeBitCast(body, to: UnsafeMutableRawPointer.self)
         self.apply(info: unsafeBody, function: unsafeBitCast(callback, to: CGPathApplierFunction.self))
     }
-
-    /// Returns an array of all path command data of the CGPath
+    
+        /// Returns an array of all path command data of the CGPath
     func commands() -> [PathCommand] {
         var pathCommands = [PathCommand]()
         self.forEach(body: { (element: CGPathElement) in
@@ -41,7 +41,7 @@ extension CGPath {
                 }
             }()
             var points = [CGPoint]()
-
+            
             for index in 0..<(numberOfPoints) {
                 let point = element.points[index]
                 points.append(point)
@@ -55,15 +55,35 @@ extension CGPath {
         })
         return pathCommands
     }
-
-    /// Convenience for accessing the value of the first point in the CGPath
+    
+        /// Convenience for accessing the value of the first point in the CGPath
     func getStartPoint() -> CGPoint {
         return commands()[0].point
     }
-
+    
 }
 
-// MARK: Look Up Table
+extension RandomAccessCollection {
+        /// Finds such index N that predicate is true for all elements up to
+        /// but not including the index N, and is false for all elements
+        /// starting with index N.
+        /// Behavior is undefined if there is no such N.
+    func binarySearch(predicate: (Element) -> Bool) -> Index {
+        var low = startIndex
+        var high = endIndex
+        while low != high {
+            let mid = index(low, offsetBy: distance(from: low, to: high)/2)
+            if predicate(self[mid]) {
+                low = index(after: mid)
+            } else {
+                high = mid
+            }
+        }
+        return low
+    }
+}
+
+// MARK: - Look Up Table
 
 /// # Sampled Path Points Look Up Table
 ///
@@ -74,20 +94,33 @@ extension CGPath {
 /// is closest to our views current location.
 ///
 class LookUpTable: ObservableObject {
-
-    /// Lookup table is an array containing real points for the path.
-    private(set) var lookupTable = [CGPoint]()
-    var cgPath: CGPath
-
-    var capacity: UInt
-
+    
+        /// Lookup table is an array containing real points for the path.
+    @Published private(set) var lookupTable = [CGPoint]()
+    @Published private var cgPath: CGPath
+    
+    private var sortedXPoints = [CGPoint]()
+    private var sortedYPoints = [CGPoint]()
+    
+    private var capacity: UInt
+    
     init(path: Path, capacity: UInt=1000) {
         self.cgPath = path.cgPath
         self.capacity = capacity
         generateLookupTable()
     }
+    
+    public func updateWith(_ path: Path) {
+        self.cgPath = path.cgPath
+        generateLookupTable()
 
+    }
+    
     private func generateLookupTable() {
+        lookupTable.removeAll(keepingCapacity: true)
+        sortedXPoints = []
+        sortedYPoints = []
+        
         let commands = cgPath.commands()
         var previousPoint: CGPoint?
         let lookupTableCapacity = Int(capacity)
@@ -95,10 +128,13 @@ class LookUpTable: ObservableObject {
         guard commandCount > 0 else {
             return
         }
-        let numberOfDivisions = lookupTableCapacity / commandCount
+        let numberOfDivisions = max(lookupTableCapacity / commandCount, 1)
         let divisions = 0...numberOfDivisions
         for command in commands {
             let endPoint = command.point
+            guard endPoint.x.isFinite, endPoint.y.isFinite else {
+                continue
+            }
             guard let startPoint = previousPoint else {
                 previousPoint = endPoint
                 continue
@@ -108,17 +144,17 @@ class LookUpTable: ObservableObject {
                     lookupTable.append(contentsOf: divisions.map {
                         lerp(t: Double($0) / Double(numberOfDivisions), p1: startPoint, p2: endPoint)
                     })
-
+                    
                 case .addQuadCurveToPoint:
                     lookupTable.append(contentsOf: divisions.map {
                         quadraticInterpolation(t: Double($0) / Double(numberOfDivisions), p1: startPoint, p2: command.controlPoints[0], p3: endPoint)
                     })
-
+                    
                 case .addCurveToPoint:
                     lookupTable.append(contentsOf: divisions.map {
                         cubicInterpolation(t: Double($0) / Double(numberOfDivisions), p1: startPoint, p2: command.controlPoints[0], p3: command.controlPoints[1], p4: endPoint)
                     })
-
+                    
                 case .closeSubpath:
                     if !lookupTable.isEmpty {
                         lookupTable.append(contentsOf: divisions.map {
@@ -136,8 +172,8 @@ class LookUpTable: ObservableObject {
         }
         
     }
-
-    /// Calculates a point at given t value, where t in 0.0...1.0
+    
+        /// Calculates a point at given t value, where t in 0.0...1.0
     private func lerp(t: Double, p1: CGPoint, p2: CGPoint) -> CGPoint {
         let point = mix(
             simd_double2(x: Double(p1.x), y: Double(p1.y)),
@@ -146,35 +182,39 @@ class LookUpTable: ObservableObject {
         )
         return CGPoint(x: point.x, y: point.y)
     }
-
-    /// Calculates a point at given t value, on the quadractic bezier segment where t in 0.0...1.0
+    
+        /// Calculates a point at given t value, on the quadractic bezier segment where t in 0.0...1.0
     private func quadraticInterpolation(t: Double, p1: CGPoint, p2: CGPoint, p3: CGPoint) -> CGPoint {
-
+        
         let a = (1-t)*(1-t)*simd_double2(x: Double(p1.x), y: Double(p1.y))
         let b = 2*(1-t)*t*simd_double2(x: Double(p2.x), y: Double(p2.y))
         let c = Double(t*t)*simd_double2(x: Double(p3.x), y: Double(p3.y))
-
+        
         let point = a + b + c
         return CGPoint(x: point.x, y: point.y)
     }
-
-    /// Calculates a point at given t value, on the cubic bezier segment  where t in 0.0...1.0
+    
+        /// Calculates a point at given t value, on the cubic bezier segment  where t in 0.0...1.0
     private func cubicInterpolation(t: Double, p1: CGPoint, p2: CGPoint, p3: CGPoint, p4: CGPoint) -> CGPoint {
-
+        
         let a = (1-t)*(1-t)*(1-t)*simd_double2(x: Double(p1.x), y: Double(p1.y))
         let b = (1-t)*(1-t)*t*3*simd_double2(x: Double(p2.x), y: Double(p2.y))
         let c = (1-t)*t*t*3*simd_double2(x: Double(p3.x), y: Double(p3.y))
         let d = t*t*t*simd_double2(x: Double(p4.x), y: Double(p4.y))
-
+        
         let point = a + b + d + c
         return CGPoint(x: point.x, y: point.y)
     }
-
-    /// Finds the closest point on the curve to the drag gestures current offset.
-    /// May be faster if I use functions from the vForce library, but simd doesnt seem to have any performance issues
+    
+        /// Finds the closest point on the curve to the drag gestures current offset.
+        /// May be faster if I use functions from the vForce library, but simd doesnt seem to have any performance issues
     func getClosestPoint(fromPoint: CGPoint, axes: [Axis] = [.horizontal, .vertical]) -> CGPoint {
         guard !lookupTable.isEmpty else {
             return .zero
+        }
+        
+        if axes.count == 1, let ax = axes.first {
+            return getOneAxisClosest(fromPoint: fromPoint, ax: ax)
         }
         
         let minimum = {
@@ -201,37 +241,70 @@ class LookUpTable: ObservableObject {
         }()
         return lookupTable[minimum!.index]
     }
+    
+    func getOneAxisClosest(fromPoint: CGPoint, ax: Axis) -> CGPoint {
+        let points: [CGPoint]
+        let mapper: (CGPoint) -> CGFloat
+        if ax == .horizontal {
+            if sortedXPoints.isEmpty {
+                sortedXPoints = self.lookupTable.sorted(by: {$0.x < $1.x})
+            }
+            points = sortedXPoints
+            mapper = {$0.x}
+        } else {
+            if sortedYPoints.isEmpty {
+                sortedYPoints = self.lookupTable.sorted(by: {$0.y < $1.y})
+            }
+            points = sortedYPoints
+            mapper = {$0.y}
+        }
+        
+        guard !points.isEmpty else {
+            return .zero
+        }
+        
+        if mapper(fromPoint) < mapper(points.first!) {
+            return points.first!
+        }
+        
+        if mapper(fromPoint) > mapper(points.last!) {
+            return points.last!
+        }
+        
+        let index = points.binarySearch{mapper($0) < mapper(fromPoint)}
+        return points[index]
+    }
 }
 
-/// # Follow Path View Modifier
-/// Use this modifier on a view which you would like to constrain to a certain shaped path.
+    /// # Follow Path View Modifier
+    /// Use this modifier on a view which you would like to constrain to a certain shaped path.
 struct FollowPath: ViewModifier {
     @ObservedObject var lookUpTable: LookUpTable
     @State private var position: CGPoint = .zero
     @State private var dragState: CGSize = .zero
     var path: Path
-
+    
     func getDisplacement(closestPoint: CGPoint) -> CGSize {
         return CGSize(width: closestPoint.x - position.x, height: closestPoint.y - position.y)
     }
-
+    
     var gesture: some Gesture {
         DragGesture(minimumDistance: 0, coordinateSpace: .named("follow"))
             .onChanged { (value) in
                 let closestPoint = self.lookUpTable.getClosestPoint(fromPoint: value.location)
                 self.dragState = self.getDisplacement(closestPoint: closestPoint)
-
-        }.onEnded { (value) in
-            let closestPoint = self.lookUpTable.getClosestPoint(fromPoint: value.location)
-            let displacement = self.getDisplacement(closestPoint: closestPoint)
-            withAnimation(.linear) {
-                self.position.x += displacement.width
-                self.position.y += displacement.height
-                self.dragState = .zero
+                
+            }.onEnded { (value) in
+                let closestPoint = self.lookUpTable.getClosestPoint(fromPoint: value.location)
+                let displacement = self.getDisplacement(closestPoint: closestPoint)
+                withAnimation(.linear) {
+                    self.position.x += displacement.width
+                    self.position.y += displacement.height
+                    self.dragState = .zero
+                }
             }
-        }
     }
-
+    
     func body(content: Content) -> some View {
         path.stroke(Color.blue, lineWidth: 1)
             .overlay(content.gesture(gesture).position(position).offset(dragState))
@@ -240,7 +313,7 @@ struct FollowPath: ViewModifier {
                 self.position = self.path.cgPath.getStartPoint()
             })
     }
-
+    
     init(_ path: Path) {
         self.lookUpTable = LookUpTable(path: path)
         self.path = path
@@ -248,52 +321,52 @@ struct FollowPath: ViewModifier {
 }
 
 extension View {
-
+    
     func constrainToPath(_ path: Path) -> some View {
         self.modifier(FollowPath(path))
     }
 }
 
-// MARK: View
+    // MARK: View
 
-/// # Draggable Path Constrained View
-/// Creates a draggable circular view constrained to the given Path
+    /// # Draggable Path Constrained View
+    /// Creates a draggable circular view constrained to the given Path
 struct PathConstrained: View {
-
+    
     @ObservedObject var lookup: LookUpTable
     @State var position: CGPoint = .zero
     @State var dragState: CGSize = .zero
-
+    
     var path: Path
-
+    
     init(_ path: Path) {
         self.lookup = LookUpTable(path: path)
         self.path = path
     }
-
+    
     func getDisplacement(closestPoint: CGPoint) -> CGSize {
         return CGSize(width: closestPoint.x - position.x, height: closestPoint.y - position.y)
     }
-
+    
     var gesture: some Gesture {
         DragGesture(minimumDistance: 10, coordinateSpace: .named("MY"))
             .onChanged { (value) in
                 let closestPoint = self.lookup.getClosestPoint(fromPoint: value.location)
                 self.dragState = self.getDisplacement(closestPoint: closestPoint)
-
-        }.onEnded { (value) in
-            let closestPoint = self.lookup.getClosestPoint(fromPoint: value.location)
-            let displacement = self.getDisplacement(closestPoint: closestPoint)
-            withAnimation(.linear) {
-                self.position.x += displacement.width
-                self.position.y += displacement.height
-                self.dragState = .zero
+                
+            }.onEnded { (value) in
+                let closestPoint = self.lookup.getClosestPoint(fromPoint: value.location)
+                let displacement = self.getDisplacement(closestPoint: closestPoint)
+                withAnimation(.linear) {
+                    self.position.x += displacement.width
+                    self.position.y += displacement.height
+                    self.dragState = .zero
+                }
             }
-        }
     }
-
+    
     @State var myText: String = ""
-
+    
     var thumb: some View {
         TextField("Testing", text: $myText)
             .foregroundColor(.blue)
@@ -302,7 +375,7 @@ struct PathConstrained: View {
             .position(x: position.x, y: position.y)
             .offset(x: dragState.width, y: dragState.height)
     }
-
+    
     var body: some View {
         path
             .stroke(Color.red, lineWidth: 2)
@@ -311,7 +384,7 @@ struct PathConstrained: View {
             .onAppear(perform: {
                 self.position = self.path.cgPath.getStartPoint()
             })
-
+        
     }
 }
 
@@ -320,25 +393,25 @@ struct Triangle: Shape {
         Path { (path) in
             let w = rect.width
             let h = rect.height
-
+            
             path.move(to: CGPoint(x: w/2, y: h/4))
             path.addLine(to: CGPoint(x: 3*w/4, y: 3*h/4))
             path.addLine(to: CGPoint(x: w/4, y: 3*h/4))
             path.closeSubpath()
-
+            
         }
     }
 }
 
-/// Examples of how to use the different constraint components.
+    /// Examples of how to use the different constraint components.
 struct ContentView: View {
     var body: some View {
         VStack {
-
+            
             PathConstrained(Triangle().path(in: CGRect(x: 0, y: 0, width: 250, height: 250)))
-
+            
             PathConstrained(Circle().path(in: CGRect(x: 0, y: 0, width: 250, height: 250)))
-
+            
             Ellipse()
                 .fill(LinearGradient(gradient: Gradient(colors: [.red, .orange]), startPoint: .topTrailing, endPoint: .bottomLeading))
                 .frame(width: 75, height: 50)

@@ -1,9 +1,9 @@
-//
-//  ChartSmoothView.swift
-//  
-//
-//  Created by Alex Dremov on 04.09.2022.
-//
+    //
+    //  ChartSmoothView.swift
+    //
+    //
+    //  Created by Alex Dremov on 04.09.2022.
+    //
 
 import Foundation
 import SwiftUI
@@ -19,8 +19,8 @@ public struct ChartSmoothPlot<Point: Plottable>: View {
     private var zones = [Zone]()
     private var style: LineViewStyle = .standard
     
-    @State private var lookUpTable = LookUpTable(path: Path())
-    @State private var mainPath: Path?
+    @ObservedObject private var lookUpTable = LookUpTable(path: Path())
+    @State private var path: Path = Path()
     @State private var horizontalLines = [CGFloat]()
     @State private var verticalLines = [CGFloat]()
     @State private var horizontalTicks = [String]()
@@ -36,7 +36,7 @@ public struct ChartSmoothPlot<Point: Plottable>: View {
     public init(data: [Point]) {
         self.data = PointsArray(
             storage: data.sorted{ $0.point.x < $1.point.x }
-        ) 
+        )
     }
     
     public var body: some View {
@@ -276,7 +276,7 @@ public struct ChartSmoothPlot<Point: Plottable>: View {
     
     @ViewBuilder
     private func graphItself(port: GeometryProxy) -> some View {
-        pathDrawing(port: port)
+        path
             .trim(from: 0, to: animationPercent)
             .stroke(
                 LinearGradient(
@@ -295,7 +295,13 @@ public struct ChartSmoothPlot<Point: Plottable>: View {
                     lineJoin: .round
                 )
             )
+            .onChange(of: port.size) { newSize in
+                path = pathDrawing(port: newSize)
+                lookUpTable.updateWith(path)
+            }
             .onAppear {
+                path = pathDrawing(port: port.size)
+                lookUpTable.updateWith(path)
                 withAnimation(.easeInOut(duration: 1.0)) {
                     animationPercent = 1
                 }
@@ -331,13 +337,12 @@ public struct ChartSmoothPlot<Point: Plottable>: View {
         return controlPoints
     }
     
-    private func pathDrawing(port viewPort: GeometryProxy) -> Path {
+    private func pathDrawing(port size: CGSize) -> Path {
         guard !data.isEmpty else {
             return Path()
         }
         var path = Path()
         
-        let size = viewPort.size
         let firstTransformed = data.affineTransformed(
             i: 0,
             width: Float(size.width),
@@ -365,7 +370,7 @@ public struct ChartSmoothPlot<Point: Plottable>: View {
             width: Float(size.width),
             height: Float(size.height)
         ) + [lastOutlier]
-
+        
         let controlPoints = createControlPoints(
             drawPoints: drawPoints,
             size: size
@@ -390,10 +395,6 @@ public struct ChartSmoothPlot<Point: Plottable>: View {
                 control1: controlPoints[point].firstControlPoint,
                 control2: controlPoints[point].secondControlPoint
             )
-        }
-        DispatchQueue.main.async {
-            lookUpTable = LookUpTable(path: path)
-            mainPath = path
         }
         return path
     }
